@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Regression Model - Live Performance Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Navigation / Header -->
+    <header class="w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white">PAMDS504L Mini-Project Demo</h1>
+                    <p class="text-xs text-slate-400">Multiple Linear Regression Analysis of EPL Football Teams</p>
+                </div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 px-4 py-1.5 rounded-full text-xs font-mono text-indigo-400">
+                $R^2 = 0.940$ | $n = 40$
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-6xl mx-auto px-6 py-10 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Column: Controls & Formula Breakdown -->
+        <div class="lg:col-span-5 space-y-6">
+            
+            <!-- Sliders Card -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl space-y-6">
+                <div class="border-b border-slate-800 pb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        Model Parameters
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Adjust team performance metrics to simulate league points.</p>
+                </div>
+
+                <!-- Goals Scored (GF) Slider -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-sm font-semibold text-emerald-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Goals Scored (GF)
+                        </label>
+                        <span id="scoredVal" class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-sm rounded-lg">55</span>
+                    </div>
+                    <input type="range" id="scoredInput" min="25" max="90" value="55" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                        <span>25 goals</span>
+                        <span>90 goals</span>
+                    </div>
+                </div>
+
+                <!-- Goals Conceded (GA) Slider -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-sm font-semibold text-rose-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> Goals Conceded (GA)
+                        </label>
+                        <span id="concededVal" class="px-3 py-1 bg-rose-500/10 border border-rose-500/30 text-rose-400 font-mono font-bold text-sm rounded-lg">45</span>
+                    </div>
+                    <input type="range" id="concededInput" min="20" max="85" value="45" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                    <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                        <span>20 goals</span>
+                        <span>85 goals</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Equation Breakdown Card -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl space-y-3">
+                <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Estimated Contributions</h3>
+                <div class="space-y-2 text-xs font-mono">
+                    <div class="flex justify-between py-1.5 border-b border-slate-800/80">
+                        <span class="text-slate-400">Baseline Intercept ($\beta_0$):</span>
+                        <span class="text-blue-400 font-bold">+57.85 pts</span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-slate-800/80">
+                        <span class="text-slate-400">Attack Effect ($+0.72 \times GF$):</span>
+                        <span id="attackContrib" class="text-emerald-400 font-bold">+39.33 pts</span>
+                    </div>
+                    <div class="flex justify-between py-1.5">
+                        <span class="text-slate-400">Defense Effect ($-0.71 \times GA$):</span>
+                        <span id="defenseContrib" class="text-rose-400 font-bold">-32.17 pts</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Big Result & Visual Chart -->
+        <div class="lg:col-span-7 space-y-6">
+            
+            <!-- Big Score Output Card -->
+            <div class="glass-card p-8 rounded-2xl shadow-2xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6 border-indigo-500/30 bg-gradient-to-br from-slate-900 via-indigo-950/30 to-slate-900">
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest font-bold text-indigo-400">Predicted League Outcome</span>
+                    <h2 class="text-2xl font-extrabold text-white mt-1">Season Points Tally</h2>
+                    <p class="text-xs text-slate-400 mt-1">Calculated via OLS Multiple Regression model.</p>
+                </div>
+                <div class="text-center sm:text-right bg-slate-950/60 px-8 py-5 rounded-2xl border border-indigo-500/30 shadow-inner">
+                    <div id="predictedPoints" class="text-5xl font-black text-indigo-400 font-mono tracking-tight">65.0</div>
+                    <span class="text-[11px] text-slate-400 font-medium">Expected Points</span>
+                </div>
+            </div>
+
+            <!-- Graphical Chart Card -->
+            <div class="glass-card p-6 rounded-2xl shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-bold text-slate-300">Factor Impact Breakdown</h3>
+                    <span class="text-xs text-slate-400 font-mono">Points Contribution</span>
+                </div>
+                <div class="w-full h-64 relative">
+                    <canvas id="impactChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full border-t border-slate-800 bg-slate-950 py-4 text-center text-xs text-slate-500">
+        School of Advanced Sciences • Vellore Institute of Technology
+    </footer>
+
+    <!-- JavaScript Interactive Logic -->
+    <script>
+        const scoredInput = document.getElementById('scoredInput');
+        const concededInput = document.getElementById('concededInput');
+        const scoredVal = document.getElementById('scoredVal');
+        const concededVal = document.getElementById('concededVal');
+        const predictedPointsDisplay = document.getElementById('predictedPoints');
+        const attackContrib = document.getElementById('attackContrib');
+        const defenseContrib = document.getElementById('defenseContrib');
+
+        // Regression Coefficients from your Python OLS Output
+        const intercept = 57.8504;
+        const betaScored = 0.7151;
+        const betaConceded = -0.7149;
+
+        // Chart.js Configuration
+        const ctx = document.getElementById('impactChart').getContext('2d');
+        const impactChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Baseline Anchor', 'Attack Impact (GF)', 'Defense Impact (GA)'],
+                datasets: [{
+                    data: [intercept, 0, 0],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f43f5e'],
+                    borderRadius: 8,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` Contribution: ${context.raw} points`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        grid: { color: 'rgba(51, 65, 85, 0.4)' }, 
+                        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans' } } 
+                    },
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans' } } 
+                    }
+                }
+            }
+        });
+
+        function updateModel() {
+            const gf = parseInt(scoredInput.value);
+            const ga = parseInt(concededInput.value);
+
+            scoredVal.textContent = gf;
+            concededVal.textContent = ga;
+
+            const attackEffect = gf * betaScored;
+            const defenseEffect = ga * betaConceded; // negative value
+            
+            let totalPoints = intercept + attackEffect + defenseEffect;
+            totalPoints = Math.max(0, Math.min(114, totalPoints)); // Cap between 0 and max 38*3 = 114 pts
+
+            // Update DOM displays
+            predictedPointsDisplay.textContent = totalPoints.toFixed(1);
+            attackContrib.textContent = `+${attackEffect.toFixed(2)} pts`;
+            defenseContrib.textContent = `${defenseEffect.toFixed(2)} pts`;
+
+            // Update Chart Data
+            impactChart.data.datasets[0].data = [
+                intercept.toFixed(2), 
+                attackEffect.toFixed(2), 
+                defenseEffect.toFixed(2)
+            ];
+            impactChart.update();
+        }
+
+        scoredInput.addEventListener('input', updateModel);
+        concededInput.addEventListener('input', updateModel);
+
+        // Run on load
+        updateModel();
+    </script>
+</body>
+</html>
